@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ApplicationList from '../components/ApplicationList';
 import ApplicationDetails from '../components/ApplicationDetails';
 import { fetchApplications, fetchAndProcessEmails, updateApplicationStatus, downloadAttachment } from '../services/api';
+import axios from 'axios';
 
 function ApplicationReview() {
   const { jobId } = useParams();
@@ -20,7 +21,11 @@ function ApplicationReview() {
   const loadApplications = async () => {
     try {
       setLoading(true);
-      const response = await fetchApplications(jobId);
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/applications/${jobId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       setApplications(response.data);
     } catch (err) {
       console.error('Error loading applications:', err);

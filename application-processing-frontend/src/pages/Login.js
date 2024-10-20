@@ -1,39 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { loginWithGoogle } from '../services/auth';
 
-function Login() {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const { login, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('Login component mounted or user changed');
-    console.log('Current user:', user);
-    if (user) {
-      console.log('User is logged in, redirecting to dashboard');
+    const token = localStorage.getItem('token');
+    if (token) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    console.log('Login attempt with:', email);
     try {
-      const result = await login(email, password);
-      console.log('Login result:', result);
-      if (result.success) {
-        console.log('Login successful, user set:', result.user);
-        // The useEffect hook will handle the navigation
-      } else {
-        setError(result.message || 'Failed to log in');
-      }
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, { email, password });
+      localStorage.setItem('token', response.data.token);
+      navigate('/dashboard');
     } catch (error) {
-      console.error('Login error:', error);
-      setError('An unexpected error occurred');
+      console.error('Login error:', error.response?.data || error);
+      alert('Login failed. Please check your credentials.');
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      console.error('Error initiating Google login:', error);
+      alert('Failed to initiate Google login');
     }
   };
 
@@ -49,9 +48,7 @@ function Login() {
           <input type="hidden" name="remember" value="true" />
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
+              <label htmlFor="email-address" className="sr-only">Email address</label>
               <input
                 id="email-address"
                 name="email"
@@ -65,9 +62,7 @@ function Login() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
+              <label htmlFor="password" className="sr-only">Password</label>
               <input
                 id="password"
                 name="password"
@@ -82,8 +77,6 @@ function Login() {
             </div>
           </div>
 
-          {error && <p className="mt-2 text-center text-sm text-red-600">{error}</p>}
-
           <div>
             <button
               type="submit"
@@ -93,9 +86,17 @@ function Login() {
             </button>
           </div>
         </form>
+        <div>
+          <button
+            onClick={handleGoogleLogin}
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            Sign in with Google
+          </button>
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default Login;
