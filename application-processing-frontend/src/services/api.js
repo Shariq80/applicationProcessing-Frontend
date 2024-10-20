@@ -20,8 +20,25 @@ export const updateJob = (id, jobData) => api.put(`/jobs/${id}`, jobData);
 export const deleteJob = (id) => api.delete(`/jobs/${id}`);
 
 export const fetchApplications = (jobId) => api.get(`/applications/${jobId}`);
-export const fetchAndProcessEmails = (jobId) => api.post(`/applications/${jobId}/process-emails`);
-export const updateApplicationStatus = (applicationId, status) => api.put(`/applications/${applicationId}/status`, { status });
+export const fetchAndProcessEmails = async (jobId) => {
+  try {
+    console.log('Sending request to process emails for job:', jobId);
+    const response = await api.post(`/applications/${jobId}/process-emails`);
+    console.log('Response from processing emails:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error in fetchAndProcessEmails:', error.response || error);
+    throw error;
+  }
+};
+export const updateApplicationStatus = async (applicationId, status) => {
+  try {
+    const response = await api.put(`/applications/${applicationId}/status`, { status });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const fetchDashboardData = async () => {
   try {

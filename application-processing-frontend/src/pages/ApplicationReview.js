@@ -23,6 +23,7 @@ function ApplicationReview() {
       const response = await fetchApplications(jobId);
       setApplications(response.data);
     } catch (err) {
+      console.error('Error loading applications:', err);
       setError('Failed to load applications');
     } finally {
       setLoading(false);
@@ -32,10 +33,14 @@ function ApplicationReview() {
   const handleProcessEmails = async () => {
     setIsProcessing(true);
     try {
-      await fetchAndProcessEmails(jobId);
+      console.log('Starting to process emails for job:', jobId);
+      const response = await fetchAndProcessEmails(jobId);
+      console.log('Email processing response:', response);
       await loadApplications();
+      console.log('Applications reloaded after processing emails');
     } catch (err) {
-      setError('Failed to process emails');
+      console.error('Error processing emails:', err);
+      setError(`Failed to process emails: ${err.message || 'Unknown error'}`);
     } finally {
       setIsProcessing(false);
     }
@@ -43,8 +48,13 @@ function ApplicationReview() {
 
   const handleStatusUpdate = async (applicationId, newStatus) => {
     try {
-      await updateApplicationStatus(applicationId, newStatus);
-      await loadApplications();
+      const updatedApplication = await updateApplicationStatus(applicationId, newStatus);
+      setApplications(applications.map(app => 
+        app._id === updatedApplication._id ? updatedApplication : app
+      ));
+      if (selectedApplication && selectedApplication._id === updatedApplication._id) {
+        setSelectedApplication(updatedApplication);
+      }
     } catch (err) {
       setError('Failed to update application status');
     }
@@ -60,7 +70,7 @@ function ApplicationReview() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Application Review</h1>
+      <h1 className="text-3xl font-bold mb-8">Application Review for Job {jobId}</h1>
       <button
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
         onClick={handleProcessEmails}
