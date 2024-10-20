@@ -1,7 +1,8 @@
 // src/components/ApplicationList.js
 import React from 'react';
+import { FaPaperclip } from 'react-icons/fa';
 
-function ApplicationList({ applications, onSelect }) {
+function ApplicationList({ applications, onSelect, onViewAttachments }) {
   return (
     <ul className="divide-y divide-gray-200">
       {applications.map((application) => (
@@ -19,7 +20,18 @@ function ApplicationList({ applications, onSelect }) {
                 Score: {application.score}
               </p>
             </div>
-            <div>
+            <div className="flex items-center">
+              {application.hasAttachments && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewAttachments(application);
+                  }}
+                  className="mr-2 text-blue-500 hover:text-blue-700"
+                >
+                  <FaPaperclip />
+                </button>
+              )}
               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                 application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                 application.status === 'accepted' ? 'bg-green-100 text-green-800' :

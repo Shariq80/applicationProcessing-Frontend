@@ -64,4 +64,17 @@ export const fetchDashboardData = async () => {
   }
 };
 
+// Add this new function to the existing api.js file
+export const downloadAttachment = async (applicationId, attachmentId) => {
+  try {
+    const response = await api.get(`/applications/${applicationId}/attachment/${attachmentId}`, {
+      responseType: 'blob',
+    });
+    return response;
+  } catch (error) {
+    console.error('Error downloading attachment:', error);
+    throw error;
+  }
+};
+
 export default api;

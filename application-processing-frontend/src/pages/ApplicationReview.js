@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ApplicationList from '../components/ApplicationList';
 import ApplicationDetails from '../components/ApplicationDetails';
-import { fetchApplications, fetchAndProcessEmails, updateApplicationStatus } from '../services/api';
+import { fetchApplications, fetchAndProcessEmails, updateApplicationStatus, downloadAttachment } from '../services/api';
 
 function ApplicationReview() {
   const { jobId } = useParams();
@@ -60,6 +60,37 @@ function ApplicationReview() {
     }
   };
 
+  const handleDownloadAttachment = async (attachmentId) => {
+    try {
+      const response = await downloadAttachment(selectedApplication._id, attachmentId);
+      
+      // Create a new Blob object using the response data as a Blob
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+
+      // Create a link element, set the download attribute with the filename
+      // and click it programmatically
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      
+      // Get the filename from the content-disposition header if available, otherwise use a default name
+      const contentDisposition = response.headers['content-disposition'];
+      const filename = contentDisposition
+        ? contentDisposition.split('filename=')[1]?.replace(/['"]/g, '') || `attachment_${attachmentId}`
+        : `attachment_${attachmentId}`;
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+
+      // Clean up by revoking the Blob URL
+      window.URL.revokeObjectURL(link.href);
+    } catch (err) {
+      console.error('Error downloading attachment:', err);
+      setError('Failed to download attachment. Please try again.');
+    }
+  };
+
   if (loading) {
     return <div className="text-center mt-8">Loading...</div>;
   }
@@ -87,6 +118,7 @@ function ApplicationReview() {
           <ApplicationDetails
             application={selectedApplication}
             onStatusUpdate={handleStatusUpdate}
+            onDownloadAttachment={handleDownloadAttachment}
           />
         )}
       </div>
