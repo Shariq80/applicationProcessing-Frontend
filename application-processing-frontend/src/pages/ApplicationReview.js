@@ -65,19 +65,15 @@ function ApplicationReview() {
     }
   };
 
-  const handleDownloadAttachment = async (attachmentId) => {
+  const handleDownloadAttachment = async (applicationId, attachmentId) => {
     try {
-      const response = await downloadAttachment(selectedApplication._id, attachmentId);
+      const response = await downloadAttachment(applicationId, attachmentId);
       
-      // Create a new Blob object using the response data as a Blob
       const blob = new Blob([response.data], { type: response.headers['content-type'] });
-
-      // Create a link element, set the download attribute with the filename
-      // and click it programmatically
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
+      link.href = url;
       
-      // Get the filename from the content-disposition header if available, otherwise use a default name
       const contentDisposition = response.headers['content-disposition'];
       const filename = contentDisposition
         ? contentDisposition.split('filename=')[1]?.replace(/['"]/g, '') || `attachment_${attachmentId}`
@@ -88,8 +84,7 @@ function ApplicationReview() {
       link.click();
       link.parentNode.removeChild(link);
 
-      // Clean up by revoking the Blob URL
-      window.URL.revokeObjectURL(link.href);
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Error downloading attachment:', err);
       setError('Failed to download attachment. Please try again.');
