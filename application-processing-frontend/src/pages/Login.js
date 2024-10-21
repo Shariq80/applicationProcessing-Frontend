@@ -29,9 +29,11 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      await loginWithGoogle();
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/google/url`);
+      const data = await response.json();
+      window.location.href = data.url;
     } catch (error) {
-      console.error('Error initiating Google login:', error);
+      console.error('Error getting Google sign-in URL:', error);
       alert('Failed to initiate Google login');
     }
   };
