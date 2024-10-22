@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { fetchDashboardData } from '../services/api';
+import DashboardStats from '../components/DashboardStats';
+import ApplicationList from '../components/ApplicationList';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -47,20 +49,15 @@ function Dashboard() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
       {dashboardData ? (
-        <div>
-          <p>Total Jobs: {dashboardData.totalJobs}</p>
-          <p>Total Applications: {dashboardData.totalApplications}</p>
-          <h2 className="text-2xl font-bold mt-4 mb-2">Recent Applications</h2>
-          <ul>
-            {dashboardData.recentApplications.map((app) => (
-              <li key={app._id} className="mb-2">
-                <p>Applicant: {app.applicantEmail}</p>
-                <p>Job: {app.job ? app.job.title : 'N/A'}</p>
-                <p>Score: {app.score}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <>
+          <DashboardStats data={dashboardData} />
+          <h2 className="text-2xl font-bold mt-8 mb-4">Recent Applications</h2>
+          <ApplicationList
+            applications={dashboardData.recentApplications}
+            onSelect={(app) => console.log('Selected application:', app)}
+            onViewAttachments={(app) => console.log('View attachments for:', app)}
+          />
+        </>
       ) : (
         <div>No dashboard data available</div>
       )}
