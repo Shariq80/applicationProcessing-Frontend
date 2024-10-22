@@ -32,6 +32,16 @@ export const fetchAndProcessEmails = async (jobId) => {
   }
 };
 
+export const deleteApplication = async (applicationId) => {
+  try {
+    const response = await api.delete(`/applications/${applicationId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting application:', error);
+    throw error;
+  }
+};
+
 export const fetchDashboardData = async () => {
   try {
     console.log('Fetching dashboard data from:', `${API_URL}/dashboard`);
@@ -56,16 +66,30 @@ export const fetchDashboardData = async () => {
   }
 };
 
-export const downloadAttachment = async (applicationId, attachmentId) => {
+export const fetchJobById = async (jobId) => {
   try {
-    const response = await api.get(`/applications/${applicationId}/attachment/${attachmentId}`, {
-      responseType: 'blob',
-    });
-    return response;
+    const response = await api.get('/jobs');
+    const job = response.data.find(job => job._id === jobId);
+    if (!job) {
+      throw new Error('Job not found');
+    }
+    return job;
   } catch (error) {
-    console.error('Error downloading attachment:', error);
+    console.error('Error fetching job:', error);
     throw error;
   }
 };
 
+// Add this function to the existing api.js file
+export const downloadResume = async (applicationId) => {
+  try {
+    const response = await api.get(`/applications/${applicationId}/resume`, {
+      responseType: 'blob',
+    });
+    return response;
+  } catch (error) {
+    console.error('Error downloading resume:', error);
+    throw error;
+  }
+};
 export default api;

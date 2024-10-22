@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import JobList from '../components/JobList';
 import JobForm from '../components/JobForm';
-import { fetchJobs, createJob, updateJob, deleteJob } from '../services/api';
+import { fetchJobs, createJob, updateJob, deleteJob, fetchApplications } from '../services/api';
 
 function JobManagement() {
   const navigate = useNavigate();
@@ -16,7 +15,15 @@ function JobManagement() {
 
   const loadJobs = async () => {
     const response = await fetchJobs();
-    setJobs(response.data);
+    console.log('Fetched jobs:', response.data);
+    
+    const jobsWithApplicationCount = await Promise.all(response.data.map(async (job) => {
+      const applicationsResponse = await fetchApplications(encodeURIComponent(job.title));
+      return { ...job, applicationCount: applicationsResponse.data.length };
+    }));
+
+    console.log('Jobs with application count:', jobsWithApplicationCount);
+    setJobs(jobsWithApplicationCount);
   };
 
   const handleCreateJob = async (jobData) => {
@@ -55,12 +62,55 @@ function JobManagement() {
       >
         Create New Job
       </button>
-      <JobList 
-        jobs={jobs} 
-        onEdit={handleEditJob} 
-        onDelete={handleDeleteJob} 
-        onViewApplications={handleViewApplications}
-      />
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white">
+          <thead>
+            <tr>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Title
+              </th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Applications
+              </th>
+              <th className="px-6 py-3 border-b-2 border-gray-300 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {jobs.map((job) => (
+              <tr key={job._id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-900">{job.title}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">{job.applicationCount !== undefined ? job.applicationCount : 'N/A'}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => handleViewApplications(job)}
+                    className="text-green-600 hover:text-green-900 mr-2"
+                  >
+                    View Applications
+                  </button>
+                  <button
+                    onClick={() => handleEditJob(job)}
+                    className="text-indigo-600 hover:text-indigo-900 mr-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteJob(job._id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {openDialog && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
