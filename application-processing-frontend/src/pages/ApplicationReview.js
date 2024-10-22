@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ApplicationDetails from '../components/ApplicationDetails';
-import { fetchApplications, fetchAndProcessEmails, downloadResume, deleteApplication, fetchJobs , fetchJobById} from '../services/api';
+import { fetchApplications, fetchAndProcessEmails, downloadResume, deleteApplication, fetchJobs , fetchJobById, parseResume, downloadAttachment } from '../services/api';
 
 function ApplicationReview() {
   const { jobTitle } = useParams();
@@ -12,6 +12,7 @@ function ApplicationReview() {
   const [error, setError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [job, setJob] = useState(null);
+  const [parsingApplications, setParsingApplications] = useState({});
 
   const loadApplications = useCallback(async () => {
     try {
@@ -57,7 +58,7 @@ function ApplicationReview() {
 
   const handleDownloadAttachment = async (applicationId, attachmentId) => {
     try {
-      const response = await downloadResume(applicationId, attachmentId);
+      const response = await downloadAttachment(applicationId, attachmentId);
       const blob = new Blob([response.data], { type: response.headers['content-type'] });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -72,7 +73,8 @@ function ApplicationReview() {
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      setError('Failed to download attachment. Please try again.');
+      console.error('Error downloading attachment:', err);
+      setError('Failed to download attachment. Please try again. Error: ' + err.message);
     }
   };
 
@@ -82,6 +84,18 @@ function ApplicationReview() {
       await loadApplications();
     } catch (err) {
       setError('Failed to delete application. Please try again.');
+    }
+  };
+
+  const handleParseResume = async (applicationId) => {
+    setParsingApplications(prev => ({ ...prev, [applicationId]: true }));
+    try {
+      await parseResume(applicationId);
+      await loadApplications();
+    } catch (err) {
+      setError(`Failed to parse resume: ${err.message || 'Unknown error'}`);
+    } finally {
+      setParsingApplications(prev => ({ ...prev, [applicationId]: false }));
     }
   };
 
@@ -148,10 +162,19 @@ function ApplicationReview() {
                   </button>
                   <button
                     onClick={() => handleDownloadAttachment(application._id, application.attachmentId)}
-                    className="text-green-600 hover:text-green-900"
+                    className="text-green-600 hover:text-green-900 mr-2"
                   >
                     Download Resume
                   </button>
+                  {!application.resumeText && (
+                    <button
+                      onClick={() => handleParseResume(application._id)}
+                      className="text-yellow-600 hover:text-yellow-900"
+                      disabled={parsingApplications[application._id]}
+                    >
+                      {parsingApplications[application._id] ? 'Parsing...' : 'Parse Resume'}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

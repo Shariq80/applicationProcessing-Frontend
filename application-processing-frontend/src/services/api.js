@@ -80,10 +80,9 @@ export const fetchJobById = async (jobId) => {
   }
 };
 
-// Add this function to the existing api.js file
 export const downloadResume = async (applicationId) => {
   try {
-    const response = await api.get(`/applications/${applicationId}/resume`, {
+    const response = await api.get(`/applications/${applicationId}/attachment`, {
       responseType: 'blob',
     });
     return response;
@@ -92,4 +91,27 @@ export const downloadResume = async (applicationId) => {
     throw error;
   }
 };
+
+export const parseResume = async (applicationId) => {
+  try {
+    const response = await api.post(`/applications/${applicationId}/parse-resume`);
+    return response.data;
+  } catch (error) {
+    console.error('Error parsing resume:', error);
+    throw error;
+  }
+};
+
+export const downloadAttachment = async (applicationId, attachmentId) => {
+  try {
+    const response = await api.get(`/applications/${applicationId}/attachment/${attachmentId}`, {
+      responseType: 'blob',
+    });
+    return response;
+  } catch (error) {
+    console.error('Error downloading attachment:', error);
+    throw error;
+  }
+};
+
 export default api;
