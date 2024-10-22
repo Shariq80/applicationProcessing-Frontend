@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-function JobList({ jobs, onEdit, onDelete }) {
+function JobList({ jobs, onEdit, onDelete, onViewApplications }) {
   return (
     <ul className="divide-y divide-gray-200">
       {jobs.map((job) => (
@@ -13,12 +13,12 @@ function JobList({ jobs, onEdit, onDelete }) {
               <p className="text-gray-600">{job.description}</p>
             </div>
             <div className="flex space-x-2">
-              <Link
-                to={`/applications/${job._id}`}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              <button
+                onClick={() => onViewApplications(job)}
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
               >
                 View Applications
-              </Link>
+              </button>
               <button
                 onClick={() => onEdit(job)}
                 className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"

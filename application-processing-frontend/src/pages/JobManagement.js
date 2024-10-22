@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import JobList from '../components/JobList';
 import JobForm from '../components/JobForm';
 import { fetchJobs, createJob, updateJob, deleteJob } from '../services/api';
 
 function JobManagement() {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
@@ -40,6 +42,10 @@ function JobManagement() {
     setOpenDialog(true);
   };
 
+  const handleViewApplications = (job) => {
+    navigate(`/applications/${encodeURIComponent(job.title)}`);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Job Management</h1>
@@ -49,7 +55,12 @@ function JobManagement() {
       >
         Create New Job
       </button>
-      <JobList jobs={jobs} onEdit={handleEditJob} onDelete={handleDeleteJob} />
+      <JobList 
+        jobs={jobs} 
+        onEdit={handleEditJob} 
+        onDelete={handleDeleteJob} 
+        onViewApplications={handleViewApplications}
+      />
       {openDialog && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">

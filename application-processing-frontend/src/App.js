@@ -34,7 +34,7 @@ function App() {
               }
             />
             <Route
-              path="/applications/:jobId"
+              path="/applications/:jobTitle"
               element={
                 <PrivateRoute>
                   <ApplicationReview />

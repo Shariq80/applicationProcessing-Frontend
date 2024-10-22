@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ApplicationList from '../components/ApplicationList';
 import ApplicationDetails from '../components/ApplicationDetails';
@@ -6,7 +6,7 @@ import { fetchApplications, fetchAndProcessEmails, updateApplicationStatus, down
 import axios from 'axios';
 
 function ApplicationReview() {
-  const { jobId } = useParams();
+  const { jobTitle } = useParams();
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -14,32 +14,33 @@ function ApplicationReview() {
   const [error, setError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    loadApplications();
-  }, [jobId]);
-
-  const loadApplications = async () => {
+  const loadApplications = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/applications/${jobId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      console.log('Job Title:', jobTitle); // Debugging line
+      if (!jobTitle) {
+        throw new Error('Job title is undefined');
+      }
+      const encodedJobTitle = encodeURIComponent(jobTitle);
+      const response = await fetchApplications(encodedJobTitle);
       setApplications(response.data);
     } catch (err) {
       console.error('Error loading applications:', err);
-      setError('Failed to load applications');
+      setError('Failed to load applications: ' + err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobTitle]);
+
+  useEffect(() => {
+    loadApplications();
+  }, [loadApplications]);
 
   const handleProcessEmails = async () => {
     setIsProcessing(true);
     try {
-      console.log('Starting to process emails for job:', jobId);
-      const response = await fetchAndProcessEmails(jobId);
+      console.log('Starting to process emails for job:', jobTitle);
+      const response = await fetchAndProcessEmails(jobTitle);
       console.log('Email processing response:', response);
       await loadApplications();
       console.log('Applications reloaded after processing emails');
@@ -101,7 +102,7 @@ function ApplicationReview() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Application Review for Job {jobId}</h1>
+      <h1 className="text-3xl font-bold mb-8">Application Review for Job {jobTitle}</h1>
       <button
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
         onClick={handleProcessEmails}
