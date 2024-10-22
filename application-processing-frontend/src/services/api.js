@@ -31,14 +31,6 @@ export const fetchAndProcessEmails = async (jobId) => {
     throw error;
   }
 };
-export const updateApplicationStatus = async (applicationId, status) => {
-  try {
-    const response = await api.put(`/applications/${applicationId}/status`, { status });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
 
 export const fetchDashboardData = async () => {
   try {
@@ -64,7 +56,6 @@ export const fetchDashboardData = async () => {
   }
 };
 
-// Add this new function to the existing api.js file
 export const downloadAttachment = async (applicationId, attachmentId) => {
   try {
     const response = await api.get(`/applications/${applicationId}/attachment/${attachmentId}`, {

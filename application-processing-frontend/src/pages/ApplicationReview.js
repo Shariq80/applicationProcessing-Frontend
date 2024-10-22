@@ -17,7 +17,7 @@ function ApplicationReview() {
   const loadApplications = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('Job Title:', jobTitle); // Debugging line
+      console.log('Job Title:', jobTitle);
       if (!jobTitle) {
         throw new Error('Job title is undefined');
       }
@@ -49,20 +49,6 @@ function ApplicationReview() {
       setError(`Failed to process emails: ${err.message || 'Unknown error'}`);
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  const handleStatusUpdate = async (applicationId, newStatus) => {
-    try {
-      const updatedApplication = await updateApplicationStatus(applicationId, newStatus);
-      setApplications(applications.map(app => 
-        app._id === updatedApplication._id ? updatedApplication : app
-      ));
-      if (selectedApplication && selectedApplication._id === updatedApplication._id) {
-        setSelectedApplication(updatedApplication);
-      }
-    } catch (err) {
-      setError('Failed to update application status');
     }
   };
 
@@ -118,7 +104,6 @@ function ApplicationReview() {
         {selectedApplication && (
           <ApplicationDetails
             application={selectedApplication}
-            onStatusUpdate={handleStatusUpdate}
             onDownloadAttachment={handleDownloadAttachment}
           />
         )}
