@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import AttachmentList from './AttachmentList';
 import { format } from 'date-fns';
 import { FaDownload } from 'react-icons/fa';
+import DOMPurify from 'dompurify';
 
 function ApplicationDetails({ application, onDownloadAttachment, onDeleteApplication, onClose }) {
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -22,6 +22,8 @@ function ApplicationDetails({ application, onDownloadAttachment, onDeleteApplica
   const cancelDelete = () => {
     setShowConfirmation(false);
   };
+
+  const sanitizedEmailBody = application.emailBody ? DOMPurify.sanitize(application.emailBody) : '';
 
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -48,7 +50,7 @@ function ApplicationDetails({ application, onDownloadAttachment, onDeleteApplica
             <dt className="text-sm font-medium text-gray-500">Received Date</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
               {application.receivedDate
-                ? format(new Date(application.receivedDate), 'MM/dd/yyyy')
+                ? format(new Date(application.receivedDate), 'MM/dd/yyyy HH:mm:ss')
                 : 'N/A'}
             </dd>
           </div>
@@ -65,34 +67,14 @@ function ApplicationDetails({ application, onDownloadAttachment, onDeleteApplica
             </dd>
           </div>
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Resume Text</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-              {application.resumeText || 'Not parsed yet'}
-            </dd>
-          </div>
-          {application.missingSkills && application.missingSkills.length > 0 && (
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Missing Skills</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <ul className="border border-gray-200 rounded-md divide-y divide-gray-200">
-                  {application.missingSkills.map((skill, index) => (
-                    <li key={index} className="pl-3 pr-4 py-3 flex items-center justify-between text-sm">
-                      {skill}
-                    </li>
-                  ))}
-                </ul>
-              </dd>
-            </div>
-          )}
-          <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt className="text-sm font-medium text-gray-500">Attachment</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
               {application.attachmentFilename ? (
                 <div className="flex items-center">
-                  <span>{application.attachmentFilename}</span>
+                  <span className="mr-2">{application.attachmentFilename}</span>
                   <button
-                    onClick={() => onDownloadAttachment(application._id, application.attachmentId)}
-                    className="ml-2 text-indigo-600 hover:text-indigo-900"
+                    onClick={() => onDownloadAttachment(application._id, application.attachmentFilename)}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-xs"
                   >
                     <FaDownload />
                   </button>
@@ -103,45 +85,69 @@ function ApplicationDetails({ application, onDownloadAttachment, onDeleteApplica
             </dd>
           </div>
           <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Attachment Content Type</dt>
+            <dt className="text-sm font-medium text-gray-500">Email Body</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-              {application.attachmentContentType || 'N/A'}
+              {sanitizedEmailBody.trim() ? (
+                <div className="max-h-60 overflow-y-auto bg-gray-50 p-3 rounded-md">
+                  <pre className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: sanitizedEmailBody }}></pre>
+                </div>
+              ) : (
+                <span className="text-gray-500 italic">Email body is empty</span>
+              )}
             </dd>
           </div>
         </dl>
       </div>
-      <div className="mt-4 flex justify-end space-x-4 px-4 py-3 bg-gray-50 text-right sm:px-6">
-        <button
-          onClick={handleDelete}
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Delete Application
-        </button>
+      <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
         <button
           onClick={onClose}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
         >
           Close
         </button>
+        <button
+          onClick={handleDelete}
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        >
+          Delete Application
+        </button>
       </div>
       {showConfirmation && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-          <div className="bg-white p-5 rounded-lg shadow-xl">
-            <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
-            <p className="mb-4">Are you sure you want to delete this application?</p>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={cancelDelete}
-                className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Delete
-              </button>
+        <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                      Confirm Deletion
+                    </h3>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500">
+                        Are you sure you want to delete this application? This action cannot be undone.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  onClick={confirmDelete}
+                >
+                  Delete
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  onClick={cancelDelete}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
