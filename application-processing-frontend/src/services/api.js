@@ -19,7 +19,15 @@ export const createJob = (jobData) => api.post('/jobs', jobData);
 export const updateJob = (id, jobData) => api.put(`/jobs/${id}`, jobData);
 export const deleteJob = (id) => api.delete(`/jobs/${id}`);
 
-export const fetchApplications = (jobId) => api.get(`/applications/${jobId}`);
+export const fetchApplications = (jobId, startDate, endDate) => {
+  let url = `/applications/${jobId}`;
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate.toISOString());
+  if (endDate) params.append('endDate', endDate.toISOString());
+  if (params.toString()) url += `?${params.toString()}`;
+  return api.get(url);
+};
+
 export const fetchAndProcessEmails = async (jobId) => {
   try {
     console.log('Sending request to process emails for job:', jobId);
