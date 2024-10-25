@@ -49,6 +49,7 @@ function JobManagement() {
     if (deleteConfirmation) {
       try {
         await deleteJob(deleteConfirmation);
+        // The backend should handle deleting associated applications
         setJobs(jobs.filter(job => job._id !== deleteConfirmation));
         setDeleteConfirmation(null);
       } catch (error) {

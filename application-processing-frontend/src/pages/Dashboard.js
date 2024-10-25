@@ -51,12 +51,6 @@ function Dashboard() {
       {dashboardData ? (
         <>
           <DashboardStats data={dashboardData} />
-          <h2 className="text-2xl font-bold mt-8 mb-4">Recent Applications</h2>
-          <ApplicationList
-            applications={dashboardData.recentApplications}
-            onSelect={(app) => console.log('Selected application:', app)}
-            onViewAttachments={(app) => console.log('View attachments for:', app)}
-          />
         </>
       ) : (
         <div>No dashboard data available</div>

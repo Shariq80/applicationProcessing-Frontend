@@ -3,8 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ApplicationDetails from '../components/ApplicationDetails';
 import ApplicationList from '../components/ApplicationList';
 import { fetchApplications, fetchAndProcessEmails, downloadAttachment, deleteApplication, fetchJobs, fetchJobById, parseResume } from '../services/api';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
 
 function ApplicationReview() {
   const { jobTitle } = useParams();
@@ -16,8 +14,7 @@ function ApplicationReview() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [job, setJob] = useState(null);
   const [parsingApplications, setParsingApplications] = useState({});
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+
 
   const loadApplications = useCallback(async () => {
     try {
@@ -26,7 +23,7 @@ function ApplicationReview() {
         throw new Error('Job title is undefined');
       }
       const encodedJobTitle = encodeURIComponent(jobTitle);
-      const applicationsResponse = await fetchApplications(encodedJobTitle, startDate, endDate);
+      const applicationsResponse = await fetchApplications(encodedJobTitle);
       setApplications(applicationsResponse.data);
       console.log('Applications data:', applicationsResponse.data);
 
@@ -43,7 +40,7 @@ function ApplicationReview() {
     } finally {
       setLoading(false);
     }
-  }, [jobTitle, startDate, endDate]);
+  }, [jobTitle]);
 
   useEffect(() => {
     loadApplications();
@@ -130,33 +127,6 @@ function ApplicationReview() {
           <p className="text-gray-700">{job.description}</p>
         </div>
       )}
-      <div className="mb-4 flex items-center">
-        <DatePicker
-          selected={startDate}
-          onChange={date => setStartDate(date)}
-          selectsStart
-          startDate={startDate}
-          endDate={endDate}
-          placeholderText="Start Date"
-          className="mr-2 p-2 border rounded"
-        />
-        <DatePicker
-          selected={endDate}
-          onChange={date => setEndDate(date)}
-          selectsEnd
-          startDate={startDate}
-          endDate={endDate}
-          minDate={startDate}
-          placeholderText="End Date"
-          className="mr-2 p-2 border rounded"
-        />
-        <button
-          onClick={loadApplications}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Filter
-        </button>
-      </div>
       <button
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
         onClick={handleProcessEmails}
