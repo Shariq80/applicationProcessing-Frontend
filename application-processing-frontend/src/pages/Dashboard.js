@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { fetchDashboardData } from '../services/api';
 import DashboardStats from '../components/DashboardStats';
-import ApplicationList from '../components/ApplicationList';
+import JobManagement from './JobManagement';
 
 function Dashboard() {
-  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -27,10 +25,6 @@ function Dashboard() {
 
     loadDashboardData();
   }, []);
-
-  const handleManageJobs = () => {
-    navigate('/jobs');
-  };
 
   const handleGoogleAuth = async () => {
     try {
@@ -56,17 +50,12 @@ function Dashboard() {
         <div>No dashboard data available</div>
       )}
       <button
-        onClick={handleManageJobs}
-        className="mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
-      >
-        Manage Jobs
-      </button>
-      <button
         onClick={handleGoogleAuth}
         className="mt-8 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
       >
         Connect Google Account
       </button>
+      <JobManagement />
     </div>
   );
 }
