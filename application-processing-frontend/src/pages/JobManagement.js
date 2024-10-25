@@ -8,6 +8,8 @@ function JobManagement() {
   const [jobs, setJobs] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
   useEffect(() => {
     loadJobs();
@@ -39,9 +41,21 @@ function JobManagement() {
     setEditingJob(null);
   };
 
-  const handleDeleteJob = async (jobId) => {
-    await deleteJob(jobId);
-    loadJobs();
+  const handleDeleteJob = (jobId) => {
+    setDeleteConfirmation(jobId);
+  };
+
+  const confirmDeleteJob = async () => {
+    if (deleteConfirmation) {
+      try {
+        await deleteJob(deleteConfirmation);
+        setJobs(jobs.filter(job => job._id !== deleteConfirmation));
+        setDeleteConfirmation(null);
+      } catch (error) {
+        console.error('Error deleting job:', error);
+        // Handle error (e.g., show an error message to the user)
+      }
+    }
   };
 
   const handleEditJob = (job) => {
@@ -53,14 +67,26 @@ function JobManagement() {
     navigate(`/applications/${encodeURIComponent(job.title)}`);
   };
 
+  const handleSubmitJob = async (jobData) => {
+    if (editingJob) {
+      await handleUpdateJob(jobData);
+    } else {
+      await handleCreateJob(jobData);
+    }
+    setShowForm(false);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Job Management</h1>
+      <h1 className="text-3xl font-bold mb-4">Job Management</h1>
       <button
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
-        onClick={() => setOpenDialog(true)}
+        onClick={() => {
+          setEditingJob(null);
+          setShowForm(true);
+        }}
       >
-        Create New Job
+        Add New Job
       </button>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white">
@@ -127,6 +153,35 @@ function JobManagement() {
             />
           </div>
         </div>
+      )}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+          <div className="bg-white p-5 rounded-lg shadow-xl">
+            <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
+            <p className="mb-4">Are you sure you want to delete this job?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setDeleteConfirmation(null)}
+                className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteJob}
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showForm && (
+        <JobForm
+          job={editingJob}
+          onSubmit={handleSubmitJob}
+          onCancel={() => setShowForm(false)}
+        />
       )}
     </div>
   );
